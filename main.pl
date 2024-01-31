@@ -9,6 +9,7 @@ use JSON;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
+require 'accuweather.pl';
 require 'weathergov.pl';
 
 sub address_to_coordinates {
@@ -37,8 +38,11 @@ sub get_forecasts {
     my ($address) = @_;
     my ( $lat, $lon ) = address_to_coordinates($address);
 
-    my @weathergov = get_weather_gov( $lat, $lon );
-    return @weathergov;
+    my @weathergov  = get_weather_gov( $lat, $lon );
+    my @accuweather = get_accuweather( $lat, $lon );
+    my @results     = ( @weathergov, @accuweather, );
+    my @sorted      = sort { $a->{utc_time} <=> $b->{utc_time} } @results;
+    return @sorted;
 }
 
 # demo
