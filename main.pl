@@ -5,6 +5,7 @@ use URI;
 use URI::QueryParam;
 use LWP::UserAgent ();
 use JSON;
+use DateTime;
 
 use FindBin qw( $RealBin );
 use lib $RealBin;
@@ -51,7 +52,12 @@ sub get_forecasts {
 my @results = get_forecasts("Fishers Island, NY");
 foreach my $result (@results) {
     foreach my $key ( keys %{$result} ) {
-        print("$key: $result->{$key}\n");
+        my $value = $result->{$key};
+        if ( $key eq 'utc_time' ) {
+            my $time = DateTime->from_epoch($value);
+            $value = $time->rfc3339;
+        }
+        print("$key: $value\n");
     }
     print("\n");
 }
