@@ -6,6 +6,11 @@ use URI::QueryParam;
 use LWP::UserAgent ();
 use JSON;
 
+use FindBin qw( $RealBin );
+use lib $RealBin;
+
+require 'weathergov.pl';
+
 sub address_to_coordinates {
     my ($address) = @_;
 
@@ -26,4 +31,21 @@ sub address_to_coordinates {
     my $lon = $result->{lon};
 
     return ( $lat, $lon );
+}
+
+sub get_forecasts {
+    my ($address) = @_;
+    my ( $lat, $lon ) = address_to_coordinates($address);
+
+    my @weathergov = get_weather_gov( $lat, $lon );
+    return @weathergov;
+}
+
+# demo
+my @results = get_forecasts("Fishers Island, NY");
+foreach my $result (@results) {
+    foreach my $key ( keys %{$result} ) {
+        print("$key: $result->{$key}\n");
+    }
+    print("\n");
 }
