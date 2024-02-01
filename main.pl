@@ -47,7 +47,10 @@ sub getForecasts {
 }
 
 # demo
-my @results = getForecasts('Fishers Island, NY');
+print('Enter a location (CITY, ST): ');
+my $location = <>;
+chomp($location);
+my @results = getForecasts($location);
 foreach my $result (@results) {
     print( $result->toString() . "\n" );
 }
