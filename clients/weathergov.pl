@@ -10,7 +10,7 @@ require 'models/forecast.pl';
 require 'clients/httpclient.pl';
 
 # https://www.weather.gov/documentation/services-web-api#/default/gridpoint_forecast
-sub get_weather_gov {
+sub getWeatherGov {
     my ( $lat, $lon ) = @_;
 
     # translate lat,lon into Gridpoint

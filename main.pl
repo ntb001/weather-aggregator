@@ -11,20 +11,20 @@ require 'clients/accuweather.pl';
 require 'clients/weatherapi.pl';
 require 'clients/weathergov.pl';
 
-sub get_forecasts {
+sub getForecasts {
     my ($address) = @_;
-    my ( $lat, $lon ) = address_to_coordinates($address);
+    my ( $lat, $lon ) = addressToCoordinates($address);
 
-    my @weathergov  = get_weather_gov( $lat, $lon );
-    my @accuweather = get_accuweather( $lat, $lon );
-    my @weatherapi  = get_weatherapi( $lat, $lon );
+    my @weathergov  = getWeatherGov( $lat, $lon );
+    my @accuweather = getAccuweather( $lat, $lon );
+    my @weatherapi  = getWeatherapi( $lat, $lon );
     my @results     = ( @weathergov, @accuweather, @weatherapi, );
     my @sorted      = sort { $a->{time} cmp $b->{time} } @results;
     return @sorted;
 }
 
 # demo
-my @results = get_forecasts('Fishers Island, NY');
+my @results = getForecasts('Fishers Island, NY');
 foreach my $result (@results) {
     print( $result->toString() . '\n' );
 }

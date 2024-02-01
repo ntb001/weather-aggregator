@@ -6,7 +6,7 @@ use lib $RealBin;
 
 require 'clients/httpclient.pl';
 
-sub address_to_coordinates {
+sub addressToCoordinates {
     my ($address) = @_;
 
     my $client = HttpClient->new('https://nominatim.openstreetmap.org/search');

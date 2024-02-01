@@ -17,7 +17,7 @@ die 'API Key for WeatherAPI.com not found in config.ini' unless $api_key;
 
 # https://app.swaggerhub.com/apis-docs/WeatherAPI.com/WeatherAPI/1.0.2#/APIs/forecast-weather
 
-sub get_weatherapi {
+sub getWeatherapi {
     my ( $lat, $lon ) = @_;
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
