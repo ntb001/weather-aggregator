@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Date::Parse;
+use Future::AsyncAwait;
 
 use FindBin qw( $RealBin );
 use lib $RealBin;
@@ -10,7 +11,7 @@ require 'models/forecast.pl';
 require 'clients/httpclient.pl';
 
 # https://www.weather.gov/documentation/services-web-api#/default/gridpoint_forecast
-sub getWeatherGov {
+async sub getWeatherGov {
     my ( $lat, $lon ) = @_;
 
     # translate lat,lon into Gridpoint

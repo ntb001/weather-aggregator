@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Config::Tiny;
+use Future::AsyncAwait;
 
 use FindBin qw( $RealBin );
 use lib $RealBin;
@@ -17,7 +18,7 @@ die 'API Key for AccuWeather.com not found in config.ini' unless $api_key;
 
 # https://developer.accuweather.com/accuweather-forecast-api/apis/get/forecasts/v1/daily/5day/%7BlocationKey%7D
 
-sub getAccuweather {
+async sub getAccuWeather {
     my ( $lat, $lon ) = @_;
 
     # translate lat,lon into location key

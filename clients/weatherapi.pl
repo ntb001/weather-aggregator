@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Config::Tiny;
+use Future::AsyncAwait;
 
 use FindBin qw( $RealBin );
 use lib $RealBin;
@@ -17,7 +18,7 @@ die 'API Key for WeatherAPI.com not found in config.ini' unless $api_key;
 
 # https://app.swaggerhub.com/apis-docs/WeatherAPI.com/WeatherAPI/1.0.2#/APIs/forecast-weather
 
-sub getWeatherapi {
+async sub getWeatherApi {
     my ( $lat, $lon ) = @_;
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
