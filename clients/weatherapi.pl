@@ -39,10 +39,14 @@ async sub getWeatherApi {
             last;
         }
         my $entry = Forecast->new(
-            'weatherapi',              $lat,
-            $lon,                      $period->{date_epoch},
-            $period->{day}{maxtemp_f}, $period->{day}{maxwind_mph},
-            $wind_direction,           $period->{day}{daily_chance_of_rain},
+            source        => 'weatherapi',
+            latitude      => $lat,
+            longitude     => $lon,
+            time          => $period->{date_epoch},
+            temperature   => $period->{day}{maxtemp_f},
+            windSpeed     => $period->{day}{maxwind_mph},
+            windDirection => $wind_direction,
+            precipitation => $period->{day}{daily_chance_of_rain},
         );
         push( @results, $entry );
     }

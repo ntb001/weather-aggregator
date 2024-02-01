@@ -27,15 +27,19 @@ async sub getWeatherGov {
     my @results = ();
     foreach my $period ( @{ $json->{properties}->{periods} } ) {
         my $precip = $period->{propabilityOfPrecipitation}{value};
-        if ( !$precip ) { $precip = 0 }
+        $precip = 0 unless $precip;
         my $wind = $period->{windSpeed};
         $wind =~ /([\d+] to )?(\d+) mph/;
         my $windInt = $2;
         my $entry   = Forecast->new(
-            'weather.gov', $lat, $lon,
-            str2time( $period->{startTime} ),
-            $period->{temperature},
-            $windInt, $period->{windDirection}, $precip,
+            source        => 'weather.gov',
+            latitude      => $lat,
+            longitude     => $lon,
+            time          => str2time( $period->{startTime} ),
+            temperature   => $period->{temperature},
+            windSpeed     => $windInt,
+            windDirection => $period->{windDirection},
+            precipitation => $precip,
         );
         push( @results, $entry );
     }

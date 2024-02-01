@@ -4,15 +4,16 @@ package Forecast;
 
 sub new {
     my $class = shift;
+    my %args  = @_;
     my $self  = {
-        source        => shift,
-        latitude      => shift,
-        longitude     => shift,
-        time          => DateTime->from_epoch(shift),
-        temperature   => shift,
-        windSpeed     => shift,
-        windDirection => shift,
-        precipitation => shift,
+        source        => $args{source},
+        latitude      => $args{latitude},
+        longitude     => $args{longitude},
+        time          => DateTime->from_epoch( $args{time} ),
+        temperature   => $args{temperature},
+        windSpeed     => $args{windSpeed},
+        windDirection => $args{windDirection},
+        precipitation => $args{precipitation},
     };
     bless $self, $class;
     return $self;

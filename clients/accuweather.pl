@@ -41,14 +41,14 @@ async sub getAccuWeather {
     my @results = ();
     foreach my $period ( @{ $json->{DailyForecasts} } ) {
         my $entry = Forecast->new(
-            'accuweather',
-            $lat,
-            $lon,
-            $period->{EpochDate},
-            $period->{Temperature}{Maximum}{Value},
-            $period->{Day}{Wind}{Speed}{Value},
-            $period->{Day}{Wind}{Direction}{English},
-            $period->{Day}{PrecipitationProbability},
+            source        => 'accuweather',
+            latitude      => $lat,
+            longitude     => $lon,
+            time          => $period->{EpochDate},
+            temperature   => $period->{Temperature}{Maximum}{Value},
+            windSpeed     => $period->{Day}{Wind}{Speed}{Value},
+            windDirection => $period->{Day}{Wind}{Direction}{English},
+            precipitation => $period->{Day}{PrecipitationProbability},
         );
         push( @results, $entry );
     }
