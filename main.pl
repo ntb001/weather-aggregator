@@ -21,31 +21,28 @@ sub getForecasts {
     my $weathergovFuture  = getWeatherGov( $lat, $lon );
     my $accuweatherFuture = getAccuWeather( $lat, $lon );
     my $weatherapiFuture  = getWeatherApi( $lat, $lon );
-    my $weathergov        = ForecastList->new();
+    my $weathergov        = ForecastList->new;
     try {
         $weathergov = $weathergovFuture->get;
     }
     catch {
         warn "weather.gov failed: $_";
     };
-    my $accuweather = ForecastList->new();
+    my $accuweather = ForecastList->new;
     try {
         $accuweather = $accuweatherFuture->get;
     }
     catch {
         warn "AccuWeather failed: $_";
     };
-    my $weatherapi = ForecastList->new();
+    my $weatherapi = ForecastList->new;
     try {
         $weatherapi = $weatherapiFuture->get;
     }
     catch {
         warn "WeatherApi failed: $_";
     };
-    my $results = ForecastList->new();
-    $results->merge($weathergov);
-    $results->merge($accuweather);
-    $results->merge($weatherapi);
+    my $results = $weathergov->merge($accuweather)->merge($weatherapi);
     return $results;
 }
 
@@ -54,4 +51,4 @@ print('Enter a location (CITY, ST): ');
 my $location = <>;
 chomp($location);
 my $results = getForecasts($location);
-$results->toString();
+$results->toString;

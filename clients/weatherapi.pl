@@ -21,22 +21,19 @@ die 'API Key for WeatherAPI.com not found in config.ini' unless $api_key;
 
 async sub getWeatherApi {
     my ( $lat, $lon ) = @_;
-    my $results = ForecastList->new();
 
     # try cache
     my $cacheKey = "weatherapi/$lat,$lon";
     my $json     = getRedis($cacheKey);
-    if ($json) {
-        $results->fromJson($json);
-        return $results;
-    }
+    return ForecastList->new->fromJson($json) if $json;
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
     $client->addQueryParam( 'key',  $api_key );
     $client->addQueryParam( 'q',    "$lat,$lon" );
     $client->addQueryParam( 'days', 3 );
-    $json = $client->getJson();
+    $json = $client->getJson;
 
+    my $results = ForecastList->new;
     foreach my $period ( @{ $json->{forecast}{forecastday} } ) {
         my $wind_direction;
         foreach my $hour ( @{ $period->{hour} } ) {
@@ -59,7 +56,7 @@ async sub getWeatherApi {
         );
     }
 
-    setRedisTtl( $cacheKey, $results->toJson() );
+    setRedisTtl( $cacheKey, $results->toJson );
     return $results;
 }
 

@@ -17,12 +17,12 @@ sub _getGridpoint {
     # try cache
     my $cacheKey = "weathergov/gridpoint/$lat,$lon";
     my $url      = getRedis($cacheKey);
-    return $url if ($url);
+    return $url if $url;
 
     # translate lat,lon into Gridpoint
     my $client = HttpClient->new("https://api.weather.gov/points/$lat,$lon");
     $client->setAgent('application/geo+json');
-    my $json = $client->getJson();
+    my $json = $client->getJson;
     $url = $json->{properties}{forecast};
 
     setRedis( $cacheKey, $url );
@@ -32,23 +32,19 @@ sub _getGridpoint {
 # https://www.weather.gov/documentation/services-web-api#/default/gridpoint_forecast
 async sub getWeatherGov {
     my ( $lat, $lon ) = @_;
-
-    my $url     = _getGridpoint( $lat, $lon );
-    my $results = ForecastList->new();
+    my $url = _getGridpoint( $lat, $lon );
 
     # try cache
     my $json = getRedis($url);
-    if ($json) {
-        $results->fromJson($json);
-        return $results;
-    }
+    return ForecastList->new->fromJson($json) if $json;
 
     # get forecast
     my $client = HttpClient->new($url);
     $client->setAgent('application/geo+json');
     $json = $client->getJson();
 
-    foreach my $period ( @{ $json->{properties}->{periods} } ) {
+    my $results = ForecastList->new;
+    foreach my $period ( @{ $json->{properties}{periods} } ) {
         my $precip = $period->{propabilityOfPrecipitation}{value};
         $precip = 0 unless $precip;
         my $wind = $period->{windSpeed};
@@ -66,7 +62,7 @@ async sub getWeatherGov {
         );
     }
 
-    setRedisTtl( $url, $results->toJson() );
+    setRedisTtl( $url, $results->toJson );
     return $results;
 }
 

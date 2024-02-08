@@ -42,17 +42,12 @@ sub _getLocationKey {
 
 async sub getAccuWeather {
     my ( $lat, $lon ) = @_;
-
     my $locationKey = _getLocationKey( $lat, $lon );
-    my $results     = ForecastList->new();
 
     # try cache
     my $cacheKey = "accuweather/$locationKey";
     my $json     = getRedis($cacheKey);
-    if ($json) {
-        $results->fromJson($json);
-        return $results;
-    }
+    return ForecastList->new->fromJson($json) if $json;
 
     # get forecast
     my $client = HttpClient->new(
@@ -60,8 +55,9 @@ async sub getAccuWeather {
     );
     $client->addQueryParam( 'apikey',  $api_key );
     $client->addQueryParam( 'details', 'true' );
-    $json = $client->getJson();
+    $json = $client->getJson;
 
+    my $results = ForecastList->new;
     foreach my $period ( @{ $json->{DailyForecasts} } ) {
         $results->appendFromValues(
             source        => 'accuweather',
@@ -75,7 +71,7 @@ async sub getAccuWeather {
         );
     }
 
-    setRedisTtl( $cacheKey, $results->toJson() );
+    setRedisTtl( $cacheKey, $results->toJson );
     return $results;
 }
 

@@ -10,6 +10,7 @@ require 'clients/redisclient.pl';
 sub addressToCoordinates {
     my ($address) = @_;
 
+    # try cache
     my $cacheKey = "openstreetmap/$address";
     $cacheKey =~ s/ /_/g;    # spaces to underscores
     my $latlon = getRedis($cacheKey);
