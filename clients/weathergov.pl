@@ -7,31 +7,54 @@ use Future::AsyncAwait;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
-require 'models/forecast.pl';
 require 'clients/httpclient.pl';
+require 'clients/redisclient.pl';
+require 'models/forecastlist.pl';
 
-# https://www.weather.gov/documentation/services-web-api#/default/gridpoint_forecast
-async sub getWeatherGov {
+sub _getGridpoint {
     my ( $lat, $lon ) = @_;
+
+    # try cache
+    my $cacheKey = "weathergov/gridpoint/$lat,$lon";
+    my $url      = getRedis($cacheKey);
+    return $url if ($url);
 
     # translate lat,lon into Gridpoint
     my $client = HttpClient->new("https://api.weather.gov/points/$lat,$lon");
     $client->setAgent('application/geo+json');
     my $json = $client->getJson();
+    $url = $json->{properties}{forecast};
+
+    setRedis( $cacheKey, $url );
+    return $url;
+}
+
+# https://www.weather.gov/documentation/services-web-api#/default/gridpoint_forecast
+async sub getWeatherGov {
+    my ( $lat, $lon ) = @_;
+
+    my $url     = _getGridpoint( $lat, $lon );
+    my $results = ForecastList->new();
+
+    # try cache
+    my $json = getRedis($url);
+    if ($json) {
+        $results->fromJson($json);
+        return $results;
+    }
 
     # get forecast
-    my $url = $json->{properties}{forecast};
-    $client->setUrl($url);
+    my $client = HttpClient->new($url);
+    $client->setAgent('application/geo+json');
     $json = $client->getJson();
 
-    my @results = ();
     foreach my $period ( @{ $json->{properties}->{periods} } ) {
         my $precip = $period->{propabilityOfPrecipitation}{value};
         $precip = 0 unless $precip;
         my $wind = $period->{windSpeed};
         $wind =~ /([\d+] to )?(\d+) mph/;
         my $windInt = $2;
-        my $entry   = Forecast->new(
+        $results->appendFromValues(
             source        => 'weather.gov',
             latitude      => $lat,
             longitude     => $lon,
@@ -41,9 +64,10 @@ async sub getWeatherGov {
             windDirection => $period->{windDirection},
             precipitation => $precip,
         );
-        push( @results, $entry );
     }
-    return @results;
+
+    setRedisTtl( $url, $results->toJson() );
+    return $results;
 }
 
 1;

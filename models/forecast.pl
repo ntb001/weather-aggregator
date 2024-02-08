@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 use DateTime;
 
 package Forecast;
@@ -9,7 +12,7 @@ sub new {
         source        => $args{source},
         latitude      => $args{latitude},
         longitude     => $args{longitude},
-        time          => DateTime->from_epoch( $args{time} ),
+        time          => $args{time},
         temperature   => $args{temperature},
         windSpeed     => $args{windSpeed},
         windDirection => $args{windDirection},
@@ -21,7 +24,7 @@ sub new {
 
 sub getTimeString {
     my ($self) = @_;
-    return $self->{time}->rfc3339;
+    return DateTime->from_epoch( $self->{time} )->rfc3339;
 }
 
 sub toString {
@@ -32,5 +35,7 @@ sub toString {
       . "Wind: $self->{windDirection} $self->{windSpeed} mph; "
       . "Precipitation: $self->{precipitation}%; Source: $self->{source}";
 }
+
+sub TO_JSON { return { %{ shift() } }; }
 
 1;

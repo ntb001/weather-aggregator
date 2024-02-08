@@ -12,6 +12,7 @@ require 'clients/openstreetmap.pl';
 require 'clients/accuweather.pl';
 require 'clients/weatherapi.pl';
 require 'clients/weathergov.pl';
+require 'models/forecastlist.pl';
 
 sub getForecasts {
     my ($address) = @_;
@@ -20,37 +21,37 @@ sub getForecasts {
     my $weathergovFuture  = getWeatherGov( $lat, $lon );
     my $accuweatherFuture = getAccuWeather( $lat, $lon );
     my $weatherapiFuture  = getWeatherApi( $lat, $lon );
-    my @weathergov        = ();
+    my $weathergov        = ForecastList->new();
     try {
-        @weathergov = $weathergovFuture->get;
+        $weathergov = $weathergovFuture->get;
     }
     catch {
         warn "weather.gov failed: $_";
     };
-    my @accuweather = ();
+    my $accuweather = ForecastList->new();
     try {
-        @accuweather = $accuweatherFuture->get;
+        $accuweather = $accuweatherFuture->get;
     }
     catch {
         warn "AccuWeather failed: $_";
     };
-    my @weatherapi = ();
+    my $weatherapi = ForecastList->new();
     try {
-        @weatherapi = $weatherapiFuture->get;
+        $weatherapi = $weatherapiFuture->get;
     }
     catch {
         warn "WeatherApi failed: $_";
     };
-    my @results = ( @weathergov, @accuweather, @weatherapi, );
-    my @sorted  = sort { $a->{time} cmp $b->{time} } @results;
-    return @sorted;
+    my $results = ForecastList->new();
+    $results->merge($weathergov);
+    $results->merge($accuweather);
+    $results->merge($weatherapi);
+    return $results;
 }
 
 # demo
 print('Enter a location (CITY, ST): ');
 my $location = <>;
 chomp($location);
-my @results = getForecasts($location);
-foreach my $result (@results) {
-    print( $result->toString() . "\n" );
-}
+my $results = getForecasts($location);
+$results->toString();

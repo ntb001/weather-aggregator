@@ -7,8 +7,9 @@ use Future::AsyncAwait;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
-require 'models/forecast.pl';
+require 'models/forecastlist.pl';
 require 'clients/httpclient.pl';
+require 'clients/redisclient.pl';
 
 my $config = Config::Tiny->read('config.ini');
 die 'config.ini not found.' unless $config;
@@ -20,14 +21,22 @@ die 'API Key for WeatherAPI.com not found in config.ini' unless $api_key;
 
 async sub getWeatherApi {
     my ( $lat, $lon ) = @_;
+    my $results = ForecastList->new();
+
+    # try cache
+    my $cacheKey = "weatherapi/$lat,$lon";
+    my $json     = getRedis($cacheKey);
+    if ($json) {
+        $results->fromJson($json);
+        return $results;
+    }
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
     $client->addQueryParam( 'key',  $api_key );
     $client->addQueryParam( 'q',    "$lat,$lon" );
     $client->addQueryParam( 'days', 3 );
-    my $json = $client->getJson();
+    $json = $client->getJson();
 
-    my @results = ();
     foreach my $period ( @{ $json->{forecast}{forecastday} } ) {
         my $wind_direction;
         foreach my $hour ( @{ $period->{hour} } ) {
@@ -38,7 +47,7 @@ async sub getWeatherApi {
             $wind_direction = $hour->{wind_dir};
             last;
         }
-        my $entry = Forecast->new(
+        $results->appendFromValues(
             source        => 'weatherapi',
             latitude      => $lat,
             longitude     => $lon,
@@ -48,9 +57,10 @@ async sub getWeatherApi {
             windDirection => $wind_direction,
             precipitation => $period->{day}{daily_chance_of_rain},
         );
-        push( @results, $entry );
     }
-    return @results;
+
+    setRedisTtl( $cacheKey, $results->toJson() );
+    return $results;
 }
 
 1;
