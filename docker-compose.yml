@@ -1,8 +1,13 @@
 version: '3'
 services:
-  cache:
-    image: redis:6.2-alpine
+  redis:
+    image: redis:alpine
     restart: always
     ports:
       - '6379:6379'
-    command: redis-server
+  api:
+    build: .
+    ports:
+      - '8080:80'
+    volumes:
+      - .:/usr/local/apache2/cgi-bin/weather
