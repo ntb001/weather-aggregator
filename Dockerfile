@@ -6,12 +6,15 @@ RUN apt-get update && apt-get install -y \
     libcgi-pm-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# turn on printenv
-RUN echo -n "#!/usr/bin/env perl\n" | cat - /usr/local/apache2/cgi-bin/printenv > printenv.tmp \
-    && mv printenv.tmp /usr/local/apache2/cgi-bin/printenv
-RUN chmod +x /usr/local/apache2/cgi-bin/printenv
+# pass ENV vars
+RUN sed -i 's|<Directory "/usr/local/apache2/cgi-bin">|&\n    PassEnv REDIS_SERVER|' \
+    /usr/local/apache2/conf/httpd.conf
 
-# enable CGI
+# turn on printenv
+RUN sed -i "1c\\#!/usr/bin/env perl" /usr/local/apache2/cgi-bin/printenv \
+    && chmod 755 /usr/local/apache2/cgi-bin/printenv
+
+# run with CGI
 CMD httpd-foreground -c "LoadModule cgid_module modules/mod_cgid.so"
 
 
