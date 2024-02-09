@@ -7,14 +7,14 @@ use Future::AsyncAwait;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
-require 'models/forecastlist.pl';
+require 'clients/cacheclient.pl';
 require 'clients/httpclient.pl';
-require 'clients/redisclient.pl';
+require 'models/forecastlist.pl';
 
 my $config = Config::Tiny->read('config.ini');
 die 'config.ini not found.' unless $config;
 
-my $api_key = $config->{weatherapi}{api};
+my $api_key = $config->{weatherapi}->{api};
 die 'API Key for WeatherAPI.com not found in config.ini' unless $api_key;
 
 # https://app.swaggerhub.com/apis-docs/WeatherAPI.com/WeatherAPI/1.0.2#/APIs/forecast-weather
@@ -24,7 +24,7 @@ async sub getWeatherApi {
 
     # try cache
     my $cacheKey = "weatherapi/$lat,$lon";
-    my $json     = getRedis($cacheKey);
+    my $json     = cacheGet($cacheKey);
     return ForecastList->new->fromJson($json) if $json;
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
@@ -56,7 +56,7 @@ async sub getWeatherApi {
         );
     }
 
-    setRedisTtl( $cacheKey, $results->toJson );
+    cacheSetTtl( $cacheKey, $results->toJson );
     return $results;
 }
 

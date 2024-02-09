@@ -4,8 +4,8 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
+require 'clients/cacheclient.pl';
 require 'clients/httpclient.pl';
-require 'clients/redisclient.pl';
 
 sub addressToCoordinates {
     my ($address) = @_;
@@ -13,7 +13,7 @@ sub addressToCoordinates {
     # try cache
     my $cacheKey = "openstreetmap/$address";
     $cacheKey =~ s/ /_/g;    # spaces to underscores
-    my $latlon = getRedis($cacheKey);
+    my $latlon = cacheGet($cacheKey);
     if ($latlon) {
         my @array = split( "/", $latlon );
         return ( $array[0], $array[1] );
@@ -29,7 +29,7 @@ sub addressToCoordinates {
     my $lat = $result->{lat};
     my $lon = $result->{lon};
     $latlon = "$lat/$lon";
-    setRedis( $cacheKey, $latlon );
+    cacheSet( $cacheKey, $latlon );
 
     return ( $lat, $lon );
 }

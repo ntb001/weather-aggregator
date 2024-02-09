@@ -3,22 +3,24 @@ use warnings;
 
 use Redis;
 
-sub getRedis {
+my $server = 'redis:6379';
+
+sub cacheGet {
     my ($key) = @_;
-    my $redis = Redis->new( server => 'redis:6379' );
+    my $redis = Redis->new( server => $server );
     my $value = $redis->get($key);
     return $value;
 }
 
-sub setRedis {
+sub cacheSet {
     my ( $key, $value ) = @_;
-    my $redis = Redis->new( server => 'redis:6379' );
+    my $redis = Redis->new( server => $server );
     $redis->set( $key, $value );
 }
 
-sub setRedisTtl {
+sub cacheSetTtl {
     my ( $key, $value ) = @_;
-    my $redis = Redis->new( server => 'redis:6379' );
+    my $redis = Redis->new( server => $server );
     $redis->setex( $key, 3600, $value );
 }
 

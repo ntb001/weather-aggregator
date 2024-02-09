@@ -7,14 +7,14 @@ use Future::AsyncAwait;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
-require 'models/forecast.pl';
+require 'clients/cacheclient.pl';
 require 'clients/httpclient.pl';
-require 'clients/redisclient.pl';
+require 'models/forecast.pl';
 
 my $config = Config::Tiny->read('config.ini');
 die 'config.ini not found.' unless $config;
 
-my $api_key = $config->{accuweather}{api};
+my $api_key = $config->{accuweather}->{api};
 die 'API Key for AccuWeather.com not found in config.ini' unless $api_key;
 
 # https://developer.accuweather.com/accuweather-forecast-api/apis/get/forecasts/v1/daily/5day/%7BlocationKey%7D
@@ -24,7 +24,7 @@ sub _getLocationKey {
 
     # try cache
     my $cacheKey    = "accuweather/$lat,$lon";
-    my $locationKey = getRedis($cacheKey);
+    my $locationKey = cacheGet($cacheKey);
     return $locationKey if ($locationKey);
 
     # translate lat,lon into location key
@@ -36,7 +36,7 @@ sub _getLocationKey {
     my $json = $client->getJson();
     $locationKey = $json->{Key};
 
-    setRedis( $cacheKey, $locationKey );
+    cacheSet( $cacheKey, $locationKey );
     return $locationKey;
 }
 
@@ -46,7 +46,7 @@ async sub getAccuWeather {
 
     # try cache
     my $cacheKey = "accuweather/$locationKey";
-    my $json     = getRedis($cacheKey);
+    my $json     = cacheGet($cacheKey);
     return ForecastList->new->fromJson($json) if $json;
 
     # get forecast
@@ -71,7 +71,7 @@ async sub getAccuWeather {
         );
     }
 
-    setRedisTtl( $cacheKey, $results->toJson );
+    cacheSetTtl( $cacheKey, $results->toJson );
     return $results;
 }
 

@@ -7,8 +7,8 @@ use Future::AsyncAwait;
 use FindBin qw( $RealBin );
 use lib $RealBin;
 
+require 'clients/cacheclient.pl';
 require 'clients/httpclient.pl';
-require 'clients/redisclient.pl';
 require 'models/forecastlist.pl';
 
 sub _getGridpoint {
@@ -16,7 +16,7 @@ sub _getGridpoint {
 
     # try cache
     my $cacheKey = "weathergov/gridpoint/$lat,$lon";
-    my $url      = getRedis($cacheKey);
+    my $url      = cacheGet($cacheKey);
     return $url if $url;
 
     # translate lat,lon into Gridpoint
@@ -25,7 +25,7 @@ sub _getGridpoint {
     my $json = $client->getJson;
     $url = $json->{properties}{forecast};
 
-    setRedis( $cacheKey, $url );
+    cacheSet( $cacheKey, $url );
     return $url;
 }
 
@@ -35,7 +35,7 @@ async sub getWeatherGov {
     my $url = _getGridpoint( $lat, $lon );
 
     # try cache
-    my $json = getRedis($url);
+    my $json = cacheGet($url);
     return ForecastList->new->fromJson($json) if $json;
 
     # get forecast
@@ -62,7 +62,7 @@ async sub getWeatherGov {
         );
     }
 
-    setRedisTtl( $url, $results->toJson );
+    cacheSetTtl( $url, $results->toJson );
     return $results;
 }
 
