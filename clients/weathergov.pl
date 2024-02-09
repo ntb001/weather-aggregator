@@ -36,7 +36,7 @@ async sub getWeatherGov {
 
     # try cache
     my $json = cacheGet($url);
-    return ForecastList->new->fromJson($json) if $json;
+    return ForecastList->fromJson($json) if $json;
 
     # get forecast
     my $client = HttpClient->new($url);

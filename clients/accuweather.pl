@@ -47,7 +47,7 @@ async sub getAccuWeather {
     # try cache
     my $cacheKey = "accuweather/$locationKey";
     my $json     = cacheGet($cacheKey);
-    return ForecastList->new->fromJson($json) if $json;
+    return ForecastList->fromJson($json) if $json;
 
     # get forecast
     my $client = HttpClient->new(

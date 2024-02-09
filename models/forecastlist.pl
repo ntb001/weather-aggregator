@@ -18,9 +18,12 @@ sub new {
     return $self;
 }
 
-sub getArray {
-    my ($self) = @_;
-    return $self->{data};
+sub fromJson {
+    my ( $class, $raw ) = @_;
+    my @array = JSON->new->decode($raw);
+    my $self  = { data => \@array, };
+    bless $self, $class;
+    return $self;
 }
 
 sub append {
@@ -70,24 +73,6 @@ sub toJson {
     my ($self) = @_;
     my $json = JSON->new->convert_blessed( [1] );
     return $json->encode( $self->{data} );
-}
-
-sub fromJson {
-    my ( $self, $raw ) = @_;
-    my $json = JSON->new->decode($raw);
-    foreach my $entry ( @{$json} ) {
-        $self->appendFromValues(
-            source        => $entry->{source},
-            latitude      => $entry->{latitude},
-            longitude     => $entry->{longitude},
-            time          => $entry->{time},
-            temperature   => $entry->{temperature},
-            windSpeed     => $entry->{windSpeed},
-            windDirection => $entry->{windDirection},
-            precipitation => $entry->{precipitation},
-        );
-    }
-    return $self;
 }
 
 1;

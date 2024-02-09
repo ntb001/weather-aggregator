@@ -25,7 +25,7 @@ async sub getWeatherApi {
     # try cache
     my $cacheKey = "weatherapi/$lat,$lon";
     my $json     = cacheGet($cacheKey);
-    return ForecastList->new->fromJson($json) if $json;
+    return ForecastList->fromJson($json) if $json;
 
     my $client = HttpClient->new('https://api.weatherapi.com/v1/forecast.json');
     $client->addQueryParam( 'key',  $api_key );
